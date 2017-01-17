@@ -15,7 +15,6 @@ function init() {
     if (!Detector.webgl) Detector.addGetWebGLMessage();
 
     parameters = {
-        StripWidth: 1.0,
         Speed: 0.5,
         RotationY: 45,
         RotationZ: 25
@@ -28,8 +27,8 @@ function init() {
     // scene.background = new THREE.Color( 0xFFEAB0 );
     // scene.fog = new THREE.FogExp2( 0xcccccc, 0.01 ); 
 
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 250;
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
+    camera.position.z = 300;
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     renderer = new THREE.WebGLRenderer({
@@ -62,7 +61,6 @@ function init() {
 
 //-----------------------------------------------------------------------------
 function geoMeshSetting() {
-    this._gNum = 1;
     var _wireMatE = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
         opacity: 0.3,
@@ -71,49 +69,39 @@ function geoMeshSetting() {
         overdraw: true
     });
 
-    var _norMatS = new Array();
-    for (var i = 0; i < _gNum; i += 1) {
-        _norMatS[i] = new THREE.MeshLambertMaterial({
-            color: 0xffffff,
-            opacity: 0.85,
-            transparent: true,
-            shading: THREE.SmoothShading,
-            side: THREE.DoubleSide
-        });
-    }
+    var _norMatS = new THREE.MeshLambertMaterial({
+        color: 0xffffff,
+        opacity: 0.85,
+        transparent: true,
+        shading: THREE.SmoothShading,
+        side: THREE.DoubleSide
+    });
 
-    var _pointMat = new Array();
-    for (var i = 0; i < _gNum; i += 1) {
-        _pointMat[i] = new THREE.PointsMaterial({
-            color: 0xff0000,
-            size: 2
-        });
-    }
-    
-    var _geomS = new Array();
-    for (var i = 0; i < _gNum; i += 1) {
-        scene.remove(objectS[i]);
-        _geomS[i] = geom(36, 60 + 0.12 * i);
-        objectS[i] = new THREE.Points(_geomS[i], _pointMat[i]);
-        wireMeshS[i] = new THREE.Mesh(_geomS[i], _wireMatE);
-        scene.add(objectS[i]);
-        // scene.add(wireMeshS[i]);
-    }
+    var _pointMat = new THREE.PointsMaterial({
+        // color: 0x00ff00,
+        vertexColors: THREE.VertexColors,
+        size: 1
+    });
+
+    scene.remove(objectS);
+    var _geomS = geom(1, 30);
+    objectS = new THREE.Points(_geomS, _pointMat);
+    wireMeshS = new THREE.Mesh(_geomS, _wireMatE);
+    scene.add(objectS);
+    // scene.add(wireMeshS[i]);
+
 }
 
 
 //-----------------------------------------------------------------------------
 function geoMeshUpdate() {
-    var _delta = Math.PI * counter() * 0.05 / 180.0;
-    var _followIndex = 20;
-    for (var i = 0; i < objectS.length; i += 1) {
-        objectS[i].rotation.y = Math.PI;
-        objectS[i].rotation.z = Math.PI * 0.25;
-        objectS[i].rotation.x = _delta * (i + _followIndex);
-        wireMeshS[i].rotation.y = Math.PI;
-        wireMeshS[i].rotation.z = Math.PI * 0.25;
-        wireMeshS[i].rotation.x = _delta * (i + _followIndex);
-    }
+    var _delta = Math.PI * counter() * 1.0 / 180.0;
+    objectS.rotation.x = Math.PI / 180 * 30;
+    objectS.rotation.y = _delta;
+    objectS.rotation.z = _delta;
+    wireMeshS.rotation.x = Math.PI / 180 * 30;
+    wireMeshS.rotation.y = _delta;
+    wireMeshS.rotation.z = Math.PI / 180 * 45;
 }
 
 
@@ -122,26 +110,24 @@ function geom(_step, _size) {
     this._geom = new THREE.Geometry();
     this._step = _step;
     this._size = _size;
-    this._ySize = parameters.StripWidth;
-    for (var i = 0; i <= _step; i += 1) {
-        var _x1 = Math.cos(THREE.Math.degToRad(i * 360 / _step)) * _size;
-        var _x2 = Math.cos(THREE.Math.degToRad((i + 1) * 360 / _step)) * _size;
-        var _z1 = Math.sin(THREE.Math.degToRad((i) * 360 / _step)) * _size;
-        var _z2 = Math.sin(THREE.Math.degToRad((i + 1) * 360 / _step)) * _size;
-        var v1 = new THREE.Vector3(_x1, -_ySize * 0.5, _z1);
-        var v2 = new THREE.Vector3(_x2, _ySize * 0.5, _z2);
-        var v3 = new THREE.Vector3(_x1, _ySize * 0.5, _z1);
-        _geom.vertices.push(v1);
+    for (var i = 0; i < 360; i += _step) {
+        for (var j = 0; j < 360; j += _step) {
+            u = Math.PI / 180 * i;
+            v = Math.PI / 180 * j;
+            var xUp = 2 * Math.sin(3 * u) / (2 + Math.cos(v)) * _size;
+            var yUp = 2 * (Math.sin(u) + 2 * Math.sin(2 * u)) / (2 + Math.cos(v + 2 * Math.PI / 3)) * _size;
+            var zUp = (Math.cos(u) - 2 * Math.cos(2 * u)) * (2 + Math.cos(v)) * (2 + Math.cos(v + 2 * Math.PI / 3)) / 4 * _size;
+            var _v1 = new THREE.Vector3(xUp, yUp, zUp);
+            _geom.vertices.push(_v1);
+        }
     }
-    // for (var i = 0; i < _geom.vertices.length - 3; i += 3) {
-    //     _geom.faces.push(new THREE.Face3(i + 1, i, i + 2));
-    //     _geom.faces.push(new THREE.Face3(i + 3, i, i + 1));
-    //     _geom.computeFaceNormals();
-    // }
-    // for (var i = 0; i < _geom.vertices.length - 3; i += 3) {
-    //     _geom.vertices.push(new THREE.Face3(i + 1, i, i + 2));
-    //     _geom.computeFaceNormals();
-    // }
+
+    for (var i = 0; i < _geom.vertices.length; i++) {
+        var _color = new THREE.Color(0x00ff00);
+        _color.setHSL(i / _geom.vertices.length, 1, 0.5);
+        _geom.colors[i] = _color;
+    }
+
     return _geom
 }
 
@@ -207,8 +193,8 @@ function guiSetting() {
 
     gui.add(parameters, 'Speed').min(0.0).max(1.0).step(0.1).listen();
 
-    var _stripWidth = gui.add(parameters, 'StripWidth').min(0.2).max(3.0).step(0.1).listen();
-    _stripWidth.onChange(function() {
-        geoMeshSetting();
-    });
+    // var _stripWidth = gui.add(parameters, 'StripWidth').min(0.2).max(3.0).step(0.1).listen();
+    // _stripWidth.onChange(function() {
+    //     geoMeshSetting();
+    // });
 }
