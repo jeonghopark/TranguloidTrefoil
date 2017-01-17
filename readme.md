@@ -1,3 +1,5 @@
 Mathematical ThreeJS
 
-Mathematical Formula : https://github.com/jeonghopark/TranguloidTrefoil.git
+online : https://jeonghopark.github.io/TranguloidTrefoil
+
+Source Mathematical Formula : http://paulbourke.net/geometry/tranguloid/
