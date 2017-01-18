@@ -54,7 +54,6 @@ function init() {
 
     guiSetting();
 
-
 }
 
 
@@ -84,7 +83,7 @@ function geoMeshSetting() {
     });
 
     scene.remove(objectS);
-    var _geomS = geom(1, 30);
+    var _geomS = geom(30);
     objectS = new THREE.Points(_geomS, _pointMat);
     wireMeshS = new THREE.Mesh(_geomS, _wireMatE);
     scene.add(objectS);
@@ -106,14 +105,14 @@ function geoMeshUpdate() {
 
 
 //-----------------------------------------------------------------------------
-function geom(_step, _size) {
+function geom(_size) {
     this._geom = new THREE.Geometry();
-    this._step = _step;
+    this._step = 2;
     this._size = _size;
     for (var i = 0; i < 360; i += _step) {
         for (var j = 0; j < 360; j += _step) {
-            u = Math.PI / 180 * i;
-            v = Math.PI / 180 * j;
+            u = Math.PI / 180 * i - Math.PI / 180;
+            v = Math.PI / 180 * j - Math.PI / 180;
             var xUp = 2 * Math.sin(3 * u) / (2 + Math.cos(v)) * _size;
             var yUp = 2 * (Math.sin(u) + 2 * Math.sin(2 * u)) / (2 + Math.cos(v + 2 * Math.PI / 3)) * _size;
             var zUp = (Math.cos(u) - 2 * Math.cos(2 * u)) * (2 + Math.cos(v)) * (2 + Math.cos(v + 2 * Math.PI / 3)) / 4 * _size;
